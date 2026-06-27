@@ -11,6 +11,8 @@ frontend/node_modules/
 # Build outputs
 frontend/dist/
 frontend/build/
+backend/build/
+backend/dist/
 
 # Misc
 .DS_Store
