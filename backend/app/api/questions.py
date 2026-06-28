@@ -21,14 +21,14 @@ def generate_question(
     difficulty: Difficulty = Query(default=Difficulty.SEDANG),
     seed: int | None = Query(default=None),
     # Advanced — Layer 1
-    n_components: int | None = Query(default=None, ge=2, le=8, description="Override jumlah komponen"),
-    r_min: float | None = Query(default=None, gt=0, description="Batas bawah nilai resistor (Ω)"),
-    r_max: float | None = Query(default=None, gt=0, description="Batas atas nilai resistor (Ω)"),
-    force_identical: bool | None = Query(default=None, description="Paksa/larang resistor identik"),
+    n_components: int | None = Query(default=None, ge=2, le=8),
+    r_min: float | None = Query(default=None, gt=0),
+    r_max: float | None = Query(default=None, gt=0),
+    force_identical: bool | None = Query(default=None),
     # Advanced — Layer 2
-    internal_resistance: float | None = Query(default=None, ge=0, description="Hambatan dalam sumber (Ω)"),
-    show_power: bool = Query(default=False, description="Tampilkan daya per komponen"),
-    unit_prefix: str | None = Query(default=None, regex="^(auto|base|kilo)$", description="Prefix satuan output"),
+    internal_resistance: float | None = Query(default=None, ge=0),
+    show_power: bool = Query(default=False),
+    unit_prefix: str | None = Query(default=None, pattern="^(auto|base|kilo)$"),
 ) -> GenerateQuestionResponse:
 
     resolved_seed = seed if seed is not None else random.randint(0, 2**31 - 1)
@@ -42,7 +42,6 @@ def generate_question(
     except KeyError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    # Kumpulkan advanced options hanya jika ada yang diisi
     advanced: Optional[AdvancedOptions] = None
     if any(v is not None for v in [n_components, r_min, r_max, force_identical, internal_resistance, unit_prefix]) or show_power:
         advanced = AdvancedOptions(
@@ -58,8 +57,9 @@ def generate_question(
     spec = generator.generate(difficulty=difficulty, seed=resolved_seed, advanced=advanced)
 
     svg = renderer.render_svg(spec)
-    solution = calculator.solve(spec)
-    llm_description = describer.describe_for_llm(spec)
+    # Teruskan unit_prefix ke calculator dan describer agar satuan konsisten
+    solution = calculator.solve(spec, unit_prefix=unit_prefix)
+    llm_description = describer.describe_for_llm(spec, unit_prefix=unit_prefix)
 
     return GenerateQuestionResponse(
         spec=spec,
