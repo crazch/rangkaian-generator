@@ -17,3 +17,4 @@ backend/dist/
 # Misc
 .DS_Store
 *.log
+dev.sh

@@ -30,67 +30,31 @@ Topologi direpresentasikan sebagai **Branch rekursif** (seri/paralel
 bersarang), bukan graph bebas — cukup ekspresif untuk semua pola SMA standar
 tanpa perlu circuit solver / node analysis.
 
-## Struktur Folder Lama
-```
-backend/
-├── app/
-│   ├── main.py                  # entry point FastAPI
-│   ├── models/
-│   │   ├── components.py        # Component, VoltageSource
-│   │   └── circuit_spec.py      # Branch (rekursif), CircuitSpec
-│   ├── patterns/                # modul pola topologi (scalable)
-│   │   ├── base.py              # interface PatternGenerator
-│   │   ├── series_pattern.py    # pola SERIES_SIMPLE
-│   │   ├── parallel_pattern.py  # pola PARALLEL_SIMPLE
-│   │   └── registry.py          # titik pendaftaran semua pola
-│   ├── services/                # tiga konsumen CircuitSpec
-│   │   ├── renderer.py          # CircuitSpec -> SVG (schemdraw)
-│   │   ├── calculator.py        # CircuitSpec -> jawaban matematis
-│   │   └── describer.py         # CircuitSpec -> teks untuk LLM
-│   └── api/
-│       ├── schemas.py           # request/response model API
-│       └── questions.py         # endpoint /api/questions/*
-└── tests/                       # pytest, 14 test, semua lulus
-```
-
-## Struktur Folder Baru
+## Struktur Folder
 
 ```
-├── NOTES.md
+.
+├── DOCS.md
+├── LICENSE
 ├── README.md
+├── _assets
+│   └── screenshots
+│       ├── frontend.png
+│       └── soal_rangkaian.png
 ├── backend
 │   ├── app
 │   │   ├── __init__.py
-│   │   ├── __pycache__
-│   │   │   ├── __init__.cpython-313.pyc
-│   │   │   └── main.cpython-313.pyc
 │   │   ├── api
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── __init__.cpython-313.pyc
-│   │   │   │   ├── questions.cpython-313.pyc
-│   │   │   │   └── schemas.cpython-313.pyc
 │   │   │   ├── questions.py
 │   │   │   └── schemas.py
 │   │   ├── main.py
 │   │   ├── models
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── __init__.cpython-313.pyc
-│   │   │   │   ├── circuit_spec.cpython-313.pyc
-│   │   │   │   └── components.cpython-313.pyc
 │   │   │   ├── circuit_spec.py
 │   │   │   └── components.py
 │   │   ├── patterns
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── __init__.cpython-313.pyc
-│   │   │   │   ├── base.cpython-313.pyc
-│   │   │   │   ├── mixed_basic_pattern.cpython-313.pyc
-│   │   │   │   ├── parallel_pattern.cpython-313.pyc
-│   │   │   │   ├── registry.cpython-313.pyc
-│   │   │   │   ├── series_pattern.cpython-313.pyc
-│   │   │   │   └── value_generator.cpython-313.pyc
 │   │   │   ├── base.py
 │   │   │   ├── mixed_basic_pattern.py
 │   │   │   ├── parallel_pattern.py
@@ -99,55 +63,47 @@ backend/
 │   │   │   └── value_generator.py
 │   │   └── services
 │   │       ├── __init__.py
-│   │       ├── __pycache__
-│   │       │   ├── __init__.cpython-313.pyc
-│   │       │   ├── calculator.cpython-313.pyc
-│   │       │   ├── describer.cpython-313.pyc
-│   │       │   └── renderer.cpython-313.pyc
 │   │       ├── calculator.py
 │   │       ├── describer.py
 │   │       └── renderer.py
+│   ├── app.spec
 │   ├── main.py
 │   ├── pyproject.toml
 │   ├── tests
 │   │   ├── __init__.py
-│   │   ├── __pycache__
-│   │   │   ├── __init__.cpython-313.pyc
-│   │   │   ├── test_api.cpython-313-pytest-9.1.1.pyc
-│   │   │   ├── test_calculator.cpython-313-pytest-9.1.1.pyc
-│   │   │   ├── test_circuit_spec.cpython-313-pytest-9.1.1.pyc
-│   │   │   └── test_renderer.cpython-313-pytest-9.1.1.pyc
 │   │   ├── test_api.py
 │   │   ├── test_calculator.py
 │   │   ├── test_circuit_spec.py
 │   │   ├── test_mixed_basic.py
 │   │   └── test_renderer.py
 │   └── uv.lock
-├── frontend
-│   ├── README.md
-│   ├── index.html
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── public
-│   │   ├── favicon.svg
-│   │   └── icons.svg
-│   ├── src
-│   │   ├── App.jsx
-│   │   ├── api
-│   │   │   └── questions.js
-│   │   ├── assets
-│   │   │   ├── hero.png
-│   │   │   └── vite.svg
-│   │   ├── components
-│   │   │   ├── AnswerForm.jsx
-│   │   │   ├── CircuitDiagram.jsx
-│   │   │   ├── Controls.jsx
-│   │   │   └── ErrorBanner.jsx
-│   │   ├── hooks
-│   │   │   └── useQuestion.js
-│   │   ├── index.css
-│   │   └── main.jsx
-│   └── vite.config.js
+├── build.py
+└── frontend
+    ├── README.md
+    ├── index.html
+    ├── package-lock.json
+    ├── package.json
+    ├── public
+    │   ├── favicon.svg
+    │   └── icons.svg
+    ├── src
+    │   ├── App.jsx
+    │   ├── api
+    │   │   └── questions.js
+    │   ├── assets
+    │   │   ├── hero.png
+    │   │   └── vite.svg
+    │   ├── components
+    │   │   ├── AnswerForm.jsx
+    │   │   ├── CircuitDiagram.jsx
+    │   │   ├── Controls.jsx
+    │   │   └── ErrorBanner.jsx
+    │   ├── hooks
+    │   │   └── useQuestion.js
+    │   ├── index.css
+    │   └── main.jsx
+    └── vite.config.js
+17 directories, 53 files
 ```
 
 ## Menjalankan
