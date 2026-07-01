@@ -57,8 +57,20 @@ def generate_question(
     spec = generator.generate(difficulty=difficulty, seed=resolved_seed, advanced=advanced)
 
     svg = renderer.render_svg(spec)
-    # Teruskan unit_prefix ke calculator dan describer agar satuan konsisten
-    solution = calculator.solve(spec, unit_prefix=unit_prefix)
+    # Teruskan unit_prefix ke calculator dan describer agar satuan konsisten.
+    # Dua pola butuh solver khusus karena calculator.solve() standar hanya
+    # menangani satu sumber tegangan dan topologi seri-paralel murni:
+    # - multi_emf dengan extra_sources terisi (dua EMF, mesh/aiding/opposing)
+    # - wheatstone_bridge yang tidak seimbang (arus lewat Rg, bukan
+    #   seri-paralel murni — formula paralel naif akan salah)
+    if spec.extra_sources:
+        from app.patterns.multi_emf_pattern import solve_multi_emf
+        solution = solve_multi_emf(spec, unit_prefix=unit_prefix)
+    elif spec.topology_meta.get("balanced") is False:
+        from app.patterns.wheatstone_pattern import solve_wheatstone
+        solution = solve_wheatstone(spec, unit_prefix=unit_prefix)
+    else:
+        solution = calculator.solve(spec, unit_prefix=unit_prefix)
     llm_description = describer.describe_for_llm(spec, unit_prefix=unit_prefix)
 
     return GenerateQuestionResponse(

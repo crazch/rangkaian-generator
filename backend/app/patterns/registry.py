@@ -15,11 +15,17 @@ from app.patterns.base import PatternGenerator
 from app.patterns.parallel_pattern import ParallelSimplePattern
 from app.patterns.series_pattern import SeriesSimplePattern
 from app.patterns.mixed_basic_pattern import MixedBasicPattern
+from app.patterns.wheatstone_pattern import WheatstoneBridgePattern
+from app.patterns.multi_level_pattern import MultiLevelPattern
+from app.patterns.multi_emf_pattern import MultiEMFPattern
 
 PATTERN_REGISTRY: dict[PatternType, PatternGenerator] = {
     PatternType.SERIES_SIMPLE: SeriesSimplePattern(),
     PatternType.PARALLEL_SIMPLE: ParallelSimplePattern(),
     PatternType.MIXED_BASIC: MixedBasicPattern(),
+    PatternType.WHEATSTONE_BRIDGE: WheatstoneBridgePattern(),
+    PatternType.MULTI_LEVEL: MultiLevelPattern(),
+    PatternType.MULTI_EMF: MultiEMFPattern(),
 }
 
 

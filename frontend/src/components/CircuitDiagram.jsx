@@ -1,7 +1,10 @@
 const PATTERN_LABELS = {
-  series_simple:   'Seri',
-  parallel_simple: 'Paralel',
-  mixed_basic:     'Campuran',
+  series_simple:      'Seri',
+  parallel_simple:    'Paralel',
+  mixed_basic:        'Campuran',
+  wheatstone_bridge:  'Jembatan Wheatstone',
+  multi_level:        'Bertingkat',
+  multi_emf:          'Multi-Sumber',
 }
 
 const DIFF_COLORS = {
@@ -10,14 +13,30 @@ const DIFF_COLORS = {
   sulit:  '#7a1ac8',
 }
 
+const POLARITY_LABELS = {
+  aiding:   'searah',
+  opposing: 'berlawanan',
+}
+
 function collectComponents(node) {
   if (node.value !== undefined) return [node]
   return (node.elements ?? []).flatMap(collectComponents)
 }
 
+function SourceRow({ label, value }) {
+  return (
+    <span className="mono text-sm">
+      <span className="text-[var(--muted)]">{label}: </span>
+      <span className="font-bold">{value}</span>
+    </span>
+  )
+}
+
 export default function CircuitDiagram({ spec, svg }) {
   const patternLabel = PATTERN_LABELS[spec.pattern] ?? spec.pattern
   const diffColor    = DIFF_COLORS[spec.difficulty] ?? 'var(--ink)'
+  const galvanometer = spec.topology_meta?.galvanometer
+  const hasExtraSources = spec.extra_sources && spec.extra_sources.length > 0
 
   return (
     <div className="border border-[var(--ink)]">
@@ -51,12 +70,27 @@ export default function CircuitDiagram({ spec, svg }) {
               <span className="text-[var(--muted)]"> = {c.value}{c.unit}</span>
             </span>
           ))}
+          {galvanometer && (
+            <span className="mono text-sm">
+              <span className="font-bold">{galvanometer.label}</span>
+              <span className="text-[var(--muted)]"> = {galvanometer.value}{galvanometer.unit ?? 'Ω'}</span>
+              <span className="badge ml-1" style={{ fontSize: '0.6rem' }}>galvanometer</span>
+            </span>
+          )}
         </div>
-        <div className="mt-3 pt-3 border-t border-[var(--rule)]">
-          <span className="mono text-sm">
-            <span className="text-[var(--muted)]">Sumber: </span>
-            <span className="font-bold">{spec.source.label} = {spec.source.voltage} V</span>
-          </span>
+
+        <div className="mt-3 pt-3 border-t border-[var(--rule)] flex flex-col gap-1">
+          <SourceRow label="Sumber" value={`${spec.source.label} = ${spec.source.voltage} V`} />
+          {hasExtraSources && spec.extra_sources.map((s, i) => (
+            <SourceRow
+              key={i}
+              label="Sumber"
+              value={
+                `${s.label} = ${s.voltage} V` +
+                (s.polarity ? ` (${POLARITY_LABELS[s.polarity] ?? s.polarity} dengan ${spec.source.label})` : '')
+              }
+            />
+          ))}
         </div>
       </div>
 

@@ -106,12 +106,14 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               <CircuitDiagram spec={question.spec} svg={question.svg} />
               <AnswerForm
+                spec={question.spec}
                 solution={question.solution}
                 answers={answers}
                 setAnswer={setAnswer}
                 checked={checked}
                 onCheck={check}
                 onNext={handleNext}
+                showPower={question.show_power}
               />
             </div>
 

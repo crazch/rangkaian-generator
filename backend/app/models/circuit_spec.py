@@ -55,7 +55,9 @@ class PatternType(str, Enum):
     SERIES_SIMPLE = "series_simple"
     PARALLEL_SIMPLE = "parallel_simple"
     MIXED_BASIC = "mixed_basic"
-    # Tambahkan pola baru di sini, misal: WHEATSTONE_BRIDGE = "wheatstone_bridge"
+    WHEATSTONE_BRIDGE = "wheatstone_bridge"
+    MULTI_LEVEL = "multi_level"
+    MULTI_EMF = "multi_emf"
 
 
 class Difficulty(str, Enum):
@@ -121,7 +123,29 @@ class CircuitSpec(BaseModel):
     seed: int = Field(..., description="Seed RNG yang menghasilkan spec ini, untuk reproduksibilitas")
 
     source: VoltageSource
+    # Field tambahan untuk multi-EMF: sumber tegangan tambahan per cabang
+    extra_sources: List[VoltageSource] = Field(
+        default_factory=list,
+        description="Sumber tegangan tambahan (untuk rangkaian multi-EMF). Kosong = single-source.",
+    )
     root: Branch = Field(..., description="Branch akar yang merepresentasikan seluruh topologi resistor")
+
+    # Metadata topologi terstruktur untuk pola yang tidak bisa direpresentasikan
+    # murni lewat Branch rekursif (Jembatan Wheatstone, mesh multi-EMF). Tujuan
+    # field ini: tempat eksplisit untuk nilai tambahan (Rg, R_total non-Branch,
+    # dst) agar tidak perlu di-embed sebagai string ke VoltageSource.label —
+    # supaya frontend bisa menampilkannya secara terpisah & rapi.
+    topology_meta: dict = Field(
+        default_factory=dict,
+        description=(
+            "Metadata tambahan spesifik-pola. Contoh isi:\n"
+            "- wheatstone_bridge: {'galvanometer': {'label': 'Rg', 'value': float}, "
+            "'balanced': bool}\n"
+            "- multi_emf (mesh, sulit): {'shared_resistor_label': 'R3', "
+            "'mesh': true}\n"
+            "Kosong untuk pola yang tidak membutuhkan metadata tambahan."
+        ),
+    )
 
     schema_version: Literal[1] = Field(
         default=1, description="Versi skema spec, untuk migrasi data di masa depan"

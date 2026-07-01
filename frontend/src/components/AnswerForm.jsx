@@ -44,10 +44,11 @@ function InfoRow({ label, value, unit }) {
   )
 }
 
-function ScoreBadge({ answers, solution }) {
+function ScoreBadge({ answers, solution, isMultiEmf }) {
   const pairs = [
     ['r_total', solution.total_resistance],
     ['i_total', solution.total_current],
+    ...(isMultiEmf ? [['v_eff', solution.source_voltage]] : []),
     ...solution.component_results.flatMap(c => [
       [`v_${c.label}`, c.voltage_drop],
       [`i_${c.label}`, c.current],
@@ -62,10 +63,18 @@ function ScoreBadge({ answers, solution }) {
   )
 }
 
-export default function AnswerForm({ solution, answers, setAnswer, checked, onCheck, onNext, showPower }) {
+const POLARITY_LABELS = {
+  aiding:   'searah (aiding)',
+  opposing: 'berlawanan (opposing)',
+}
+
+export default function AnswerForm({ spec, solution, answers, setAnswer, checked, onCheck, onNext, showPower }) {
   const { total_resistance, total_current, source_voltage, component_results } = solution
   const hasInternalR = solution.internal_resistance > 0
   const res = (key, val) => checked ? evalAnswer(answers[key], val) : null
+
+  const extraSources = spec?.extra_sources ?? []
+  const isMultiEmf = extraSources.length > 0
 
   return (
     <div className="border border-[var(--ink)]">
@@ -77,6 +86,28 @@ export default function AnswerForm({ solution, answers, setAnswer, checked, onCh
       </div>
 
       <div className="px-5">
+
+        {isMultiEmf && (
+          <div className="pt-4 pb-2">
+            <p className="mono text-xs font-bold tracking-widest uppercase text-[var(--muted)] mb-2">
+              Sumber Tegangan
+            </p>
+            <InfoRow label={spec.source.label} value={spec.source.voltage} unit="V" />
+            {extraSources.map((s, i) => (
+              <InfoRow
+                key={i}
+                label={`${s.label}${s.polarity ? ` (${POLARITY_LABELS[s.polarity] ?? s.polarity})` : ''}`}
+                value={s.voltage}
+                unit="V"
+              />
+            ))}
+            <Field label="V efektif" unit="V"
+              value={answers['v_eff'] ?? ''} onChange={v => setAnswer('v_eff', v)}
+              result={res('v_eff', source_voltage)} correctValue={source_voltage} />
+          </div>
+        )}
+
+        {isMultiEmf && <hr className="rule-thin my-2" />}
 
         {/* Rangkaian keseluruhan */}
         <div className="pt-4 pb-2">
@@ -131,7 +162,7 @@ export default function AnswerForm({ solution, answers, setAnswer, checked, onCh
         {!checked
           ? <button className="btn-primary flex-1" onClick={onCheck}>→ Periksa Jawaban</button>
           : <>
-              <ScoreBadge answers={answers} solution={solution} />
+              <ScoreBadge answers={answers} solution={solution} isMultiEmf={isMultiEmf} />
               <button className="btn-secondary flex-1" onClick={onNext}>Soal Baru →</button>
             </>
         }

@@ -11,6 +11,7 @@ Catatan desain:
 from __future__ import annotations
 
 from enum import Enum
+from typing import Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -57,4 +58,13 @@ class VoltageSource(BaseModel):
         default=0.0,
         ge=0,
         description="Hambatan dalam sumber (Ohm). 0 = sumber ideal (default untuk level SMA dasar).",
+    )
+    polarity: Optional[str] = Field(
+        default=None,
+        description=(
+            "Hanya dipakai untuk sumber ke-2+ pada rangkaian multi-EMF (lihat "
+            "CircuitSpec.extra_sources). 'aiding' = searah dengan sumber utama "
+            "(V_eff = V1+V2), 'opposing' = berlawanan arah (V_eff = |V1-V2|). "
+            "None untuk sumber tunggal biasa."
+        ),
     )

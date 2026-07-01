@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { fetchPatterns } from '../api/questions.js'
 
-const PATTERNS = [
-  { value: '',                label: 'Acak' },
-  { value: 'series_simple',   label: 'Seri' },
-  { value: 'parallel_simple', label: 'Paralel' },
-  { value: 'mixed_basic',     label: 'Campuran' },
-]
+const PATTERN_LABELS = {
+  series_simple:     'Seri',
+  parallel_simple:   'Paralel',
+  mixed_basic:       'Campuran',
+  wheatstone_bridge: 'Jembatan Wheatstone',
+  multi_level:       'Bertingkat',
+  multi_emf:         'Multi-Sumber',
+}
 
 const DIFFICULTIES = [
   { value: 'mudah',  label: 'Mudah' },
@@ -79,6 +82,33 @@ export default function Controls({ onGenerate, loading }) {
   const [seedStr,    setSeedStr]    = useState('')
   const [showAdv,    setShowAdv]    = useState(false)
 
+  // Daftar pola di-fetch dari backend (single source of truth — PATTERN_REGISTRY
+  // di backend) agar pola baru otomatis muncul di UI tanpa perlu hardcode di sini.
+  // Fallback ke daftar minimal jika fetch gagal (mis. backend belum jalan).
+  const [patternOptions, setPatternOptions] = useState([
+    { value: '', label: 'Acak' },
+    { value: 'series_simple', label: PATTERN_LABELS.series_simple },
+    { value: 'parallel_simple', label: PATTERN_LABELS.parallel_simple },
+    { value: 'mixed_basic', label: PATTERN_LABELS.mixed_basic },
+  ])
+
+  useEffect(() => {
+    let cancelled = false
+    fetchPatterns()
+      .then(patterns => {
+        if (cancelled) return
+        setPatternOptions([
+          { value: '', label: 'Acak' },
+          ...patterns.map(p => ({ value: p, label: PATTERN_LABELS[p] ?? p })),
+        ])
+      })
+      .catch(() => {
+        // Diam-diam pakai fallback statis — tidak fatal, hanya pola baru
+        // tidak akan muncul sampai backend bisa diakses.
+      })
+    return () => { cancelled = true }
+  }, [])
+
   // Advanced Layer 1
   const [nComponents,    setNComponents]    = useState('')
   const [rMin,           setRMin]           = useState('')
@@ -142,7 +172,7 @@ export default function Controls({ onGenerate, loading }) {
           <div className="flex items-center px-5 py-4 gap-6">
             <label className="mono text-xs font-bold tracking-wide uppercase text-[var(--muted)] w-24 shrink-0">Pola</label>
             <div className="flex flex-wrap gap-2">
-              {PATTERNS.map(p => (
+              {patternOptions.map(p => (
                 <button key={p.value} type="button" onClick={() => setPattern(p.value)}
                   className={`badge cursor-pointer transition-colors ${
                     pattern === p.value
